@@ -7,14 +7,20 @@ const { engine } = require("express-handlebars");
 
 const db = require("./models");
 const Todo = db.Todo;
+
 // 樣板引擎設置
 app.engine(".hbs", engine({ extname: ".hbs" }));
 app.set("view engine", ".hbs");
 app.set("views", "./views");
+
+// 讓express取得網址中的資料
+app.use(express.urlencoded({ extended: true }));
+
 // Route
 app.get("/", (req, res) => {
-  res.render("index");
+  res.redirect("todos");
 });
+
 app.get("/todos", (req, res) => {
   return Todo.findAll({
     attributes: ["id", "name"],
@@ -25,11 +31,15 @@ app.get("/todos", (req, res) => {
 });
 
 app.get("/todos/new", (req, res) => {
-  res.send("create todo");
+  return res.render("new");
 });
 
 app.post("/todos", (req, res) => {
-  res.send("add todo");
+  const name = req.body.name;
+
+  return Todo.create({ name })
+    .then(() => res.redirect("/todos"))
+    .catch((err) => console.log(err));
 });
 
 app.get("/todos/:id", (req, res) => {
