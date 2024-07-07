@@ -4,6 +4,7 @@ const app = express();
 const port = 3000;
 
 const { engine } = require("express-handlebars");
+const methodOverride = require("method-override");
 
 const db = require("./models");
 const Todo = db.Todo;
@@ -15,6 +16,9 @@ app.set("views", "./views");
 
 // 讓express取得網址中的資料
 app.use(express.urlencoded({ extended: true }));
+
+// 讓表單可以使用PUT Method功能
+app.use(methodOverride("_method"));
 
 // Route
 app.get("/", (req, res) => {
@@ -54,11 +58,21 @@ app.get("/todos/:id", (req, res) => {
 });
 
 app.get("/todos/:id/edit", (req, res) => {
-  res.send(`get todo edit: ${req.params.id}`);
+  const id = req.params.id;
+
+  return Todo.findByPk(id, {
+    attributes: ["id", "name"],
+    raw: true,
+  }).then((todo) => res.render("edit", { todo }));
 });
 
 app.put("/todos/:id", (req, res) => {
-  res.send("modify todo");
+  const body = req.body;
+  const id = req.params.id;
+
+  return Todo.update({ name: body.name }, { where: { id } }).then(() =>
+    res.redirect(`/todos/${id}`)
+  );
 });
 
 app.delete("/todos/:id", (req, res) => {
