@@ -2,7 +2,8 @@
 const express = require("express");
 const app = express();
 const port = 3000;
-
+const flash = require("connect-flash");
+const session = require("express-session");
 const { engine } = require("express-handlebars");
 const methodOverride = require("method-override");
 
@@ -20,17 +21,28 @@ app.use(express.urlencoded({ extended: true }));
 // 讓表單可以使用PUT Method功能
 app.use(methodOverride("_method"));
 
+// 增添flash功能以及使用session&cookie
+app.use(
+  session({
+    secret: "ThisIsSecret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(flash());
 // Route
 app.get("/", (req, res) => {
   res.redirect("todos");
 });
 
 app.get("/todos", (req, res) => {
+  const message = req.flash("success");
+
   return Todo.findAll({
     attributes: ["id", "name", "isComplete"],
     raw: true,
   })
-    .then((todos) => res.render("todos", { todos }))
+    .then((todos) => res.render("todos", { todos, message }))
     .catch((err) => res.status(422).json(err));
 });
 
@@ -42,7 +54,10 @@ app.post("/todos", (req, res) => {
   const name = req.body.name;
 
   return Todo.create({ name })
-    .then(() => res.redirect("/todos"))
+    .then(() => {
+      req.flash("success", "新增成功!");
+      return res.redirect("/todos");
+    })
     .catch((err) => console.log(err));
 });
 
