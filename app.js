@@ -9,6 +9,13 @@ const methodOverride = require("method-override");
 const router = require("./routes/index");
 const messageHandler = require("./middlewares/message-handler");
 const errorHandler = require("./middlewares/error-handler");
+
+// 導入環境變數
+if (process.env.NODE_ENV === "development") {
+  require("dotenv").config();
+  console.log("env", process.env.SESSION_SECRET);
+}
+
 // 樣板引擎設置
 app.engine(".hbs", engine({ extname: ".hbs" }));
 app.set("view engine", ".hbs");
@@ -23,7 +30,7 @@ app.use(methodOverride("_method"));
 // 增添flash功能以及使用session&cookie
 app.use(
   session({
-    secret: "ThisIsSecret",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   })
