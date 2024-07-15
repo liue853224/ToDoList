@@ -11,6 +11,7 @@ const messageHandler = require("./middlewares/message-handler");
 const errorHandler = require("./middlewares/error-handler");
 
 // 導入環境變數
+
 if (process.env.NODE_ENV === "development") {
   require("dotenv").config();
   console.log("env", process.env.SESSION_SECRET);
