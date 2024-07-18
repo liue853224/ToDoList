@@ -29,6 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
 // 增添flash功能以及使用session&cookie
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,

@@ -37,7 +37,6 @@ router.post("/", (req, res, next) => {
 
   return Todo.create({ name })
     .then(() => {
-      console.log("新增成功");
       req.flash("success", "新增成功!");
 
       return res.redirect("/todos");
