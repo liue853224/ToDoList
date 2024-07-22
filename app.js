@@ -4,11 +4,22 @@ const app = express();
 const port = 3000;
 const flash = require("connect-flash");
 const session = require("express-session");
+
+// 加入hbs模組
 const { engine } = require("express-handlebars");
+
+// 為request加入put、delete功能
 const methodOverride = require("method-override");
+
+// 設置路由
 const router = require("./routes/index");
+
+// 訊息處理
 const messageHandler = require("./middlewares/message-handler");
 const errorHandler = require("./middlewares/error-handler");
+
+// 驗證機制
+const passport = require("passport");
 
 // 導入環境變數
 
@@ -29,7 +40,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
 // 增添flash功能以及使用session&cookie
-
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -39,6 +49,9 @@ app.use(
 );
 
 app.use(flash());
+
+// 使用passport驗證機制
+app.use(passport.initialize());
 
 // 提示訊息處理
 app.use(messageHandler);

@@ -2,9 +2,12 @@ const express = require("express");
 const router = express.Router();
 
 const db = require("../models");
+const { session } = require("passport");
+const passport = require("passport");
 const Todo = db.Todo;
 
 router.get("/", (req, res) => {
+  console.log("session", req.session);
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
 
