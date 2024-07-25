@@ -52,6 +52,7 @@ app.use(flash());
 
 // 使用passport驗證機制
 app.use(passport.initialize());
+app.use(passport.session());
 
 // 提示訊息處理
 app.use(messageHandler);
