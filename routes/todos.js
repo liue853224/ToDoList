@@ -4,6 +4,7 @@ const router = express.Router();
 const db = require("../models");
 const { session } = require("passport");
 const passport = require("passport");
+const user = require("../models/user");
 const Todo = db.Todo;
 
 router.get("/", (req, res) => {
@@ -11,9 +12,11 @@ router.get("/", (req, res) => {
   console.log(req.user);
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
+  const userId = req.user.id;
 
   return Todo.findAll({
     attributes: ["id", "name", "isComplete"],
+    where: { userId },
     offset: (page - 1) * limit,
     limit,
     raw: true,
@@ -38,8 +41,9 @@ router.get("/new", (req, res) => {
 
 router.post("/", (req, res, next) => {
   const name = req.body.name;
+  const userId = req.user.id;
 
-  return Todo.create({ name })
+  return Todo.create({ name, userId })
     .then(() => {
       req.flash("success", "新增成功!");
 
@@ -53,12 +57,23 @@ router.post("/", (req, res, next) => {
 
 router.get("/:id", (req, res) => {
   const id = req.params.id;
+  const userId = req.user.id;
 
   return Todo.findByPk(id, {
-    attributes: ["id", "name", "isComplete"],
+    attributes: ["id", "name", "isComplete", "userId"],
     raw: true,
   })
-    .then((todo) => res.render("todo", { todo }))
+    .then((todo) => {
+      if (!todo) {
+        req.flash("error", "資料不存在");
+        return redirect("/todos");
+      }
+      if (todo.userId !== userId) {
+        req.flash("error", "權限不足");
+        return redirect("/todos");
+      }
+      res.render("todo", { todo });
+    })
     .catch((error) => {
       console.error(error);
       req.flash("error", "資料取得失敗:(");
@@ -84,34 +99,57 @@ router.get("/:id/edit", (req, res) => {
 router.put("/:id", (req, res) => {
   const { name, isComplete } = req.body;
   const id = req.params.id;
+  const userId = req.user.id;
 
-  return Todo.update(
-    { name, isComplete: isComplete === "completed" },
-    { where: { id } }
-  )
-    .then(() => {
-      req.flash("success", "更新成功!");
-      return res.redirect(`/todos/${id}`);
-    })
-    .catch((error) => {
-      console.error(error);
-      req.flash("error", "更新失敗:(");
-      return res.redirect("back");
-    });
+  return Todo.findByPk(id, {
+    attributes: ["id", "name", "isComplete", "userId"],
+  }).then((todo) => {
+    if (!todo) {
+      req.flash("error", "資料不存在");
+      return redirect("/todos");
+    }
+    if (todo.userId !== userId) {
+      req.flash("error", "權限不足");
+      return redirect("/todos");
+    }
+    return todo
+      .update({ name, isComplete: isComplete === "completed" })
+      .then(() => {
+        req.flash("success", "更新成功!");
+        return res.redirect(`/todos/${id}`);
+      })
+      .catch((error) => {
+        req.flash("error", "更新失敗:(");
+        return res.redirect("back");
+      });
+  });
 });
 
 router.delete("/:id", (req, res) => {
   const id = req.params.id;
+  const userId = req.user.id;
 
-  return Todo.destroy({ where: { id } })
-    .then(() => {
-      req.flash("success", "刪除成功!");
-      return res.redirect("/todos");
+  return Todo.findByPk(id, {
+    attributes: ["id", "name", "isComplete", "userId"],
+  })
+    .then((todo) => {
+      if (!todo) {
+        req.flash("error", "找不到資料");
+        return res.redirect("/todos");
+      }
+      if (todo.userId !== userId) {
+        req.flash("error", "權限不足");
+        return res.redirect("/todos");
+      }
+
+      return todo.destroy().then(() => {
+        req.flash("success", "刪除成功!");
+        return res.redirect("/todos");
+      });
     })
     .catch((error) => {
-      console.error(error);
-      req.flash("error", "刪除失敗:(");
-      return res.redirect("back");
+      error.errorMessage = "刪除失敗:(";
+      next(error);
     });
 });
 
