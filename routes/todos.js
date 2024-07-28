@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const db = require("../models");
+const Todo = db.Todo;
 const { session } = require("passport");
 const passport = require("passport");
-const user = require("../models/user");
-const Todo = db.Todo;
+const User = db.user;
 
 router.get("/", (req, res) => {
   console.log("session", req.session);

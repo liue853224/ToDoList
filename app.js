@@ -1,7 +1,11 @@
-// 定義
+// 定義express
 const express = require("express");
 const app = express();
 const port = 3000;
+// 設置路由
+const router = require("./routes/index");
+
+// 定義cookie、flash
 const flash = require("connect-flash");
 const session = require("express-session");
 
@@ -11,10 +15,7 @@ const { engine } = require("express-handlebars");
 // 為request加入put、delete功能
 const methodOverride = require("method-override");
 
-// 設置路由
-const router = require("./routes/index");
-
-// 訊息處理
+// 導入訊息處理中介軟體
 const messageHandler = require("./middlewares/message-handler");
 const errorHandler = require("./middlewares/error-handler");
 

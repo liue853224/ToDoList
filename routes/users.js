@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
-
+// 設置加密組件
+const bcrypt = require("bcryptjs");
+// 設置資料庫來源
 const db = require("../models");
 const User = db.User;
 
@@ -24,7 +26,10 @@ router.post("/", (req, res, next) => {
         return;
       }
 
-      return User.create({ email, name, password });
+      return bcrypt.hash(password, 10).then((hash) => {
+        console.log(hash);
+        User.create({ email, name, password: hash });
+      });
     })
     .then((user) => {
       if (!user) {
